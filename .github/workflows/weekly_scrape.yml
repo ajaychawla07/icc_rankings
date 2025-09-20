@@ -4,9 +4,11 @@ on:
   schedule:
     # Every Wednesday 12:30 UTC == 18:00 IST
     - cron: "30 12 * * WED"
-  workflow_dispatch: # allows manual trigger from Actions tab
+  workflow_dispatch: # allows manual run
+
 permissions:
-  contents: write
+  contents: write   # ✅ allow workflow to push changes
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -31,6 +33,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if file changed
+          if git diff --quiet ICC_Rankings.csv.gz; then
+            echo "No changes in data. Skipping commit."
+            exit 0
+          fi
+
+          # Count rows in updated file (zcat for .gz, fallback to cat if plain csv)
+          ROWS=$(zcat ICC_Rankings.csv.gz 2>/dev/null | wc -l || cat ICC_Rankings.csv.gz | wc -l)
+
           git add ICC_Rankings.csv.gz
-          git commit -m "Weekly update (through last Tuesday IST) [skip ci]" || echo "No changes"
+          git commit -m "Weekly update: ${ROWS} rows total [skip ci]"
           git push
