@@ -106,6 +106,8 @@ def main():
     # Append + deduplicate
     new_df = pd.DataFrame(results, columns=["Date","Format","Category","Rank","Player","Rating"])
     new_df["Date"] = pd.to_datetime(new_df["Date"], errors="coerce")
+    
+    print(f"New rows scraped this run: {len(new_df)}")
 
     combined = pd.concat([df_master, new_df], ignore_index=True)
     combined = combined.drop_duplicates(
@@ -116,7 +118,7 @@ def main():
     combined["Date"] = combined["Date"].dt.strftime("%Y/%m/%d")
     combined.to_csv(OUTPUT_FILE, index=False)
 
-    print(f"Updated master file → {OUTPUT_FILE} ({len(combined):,} rows)")
+    print(f"Updated master file → {OUTPUT_FILE} ({len(combined):,} rows total)")
 
 
 if __name__ == "__main__":
